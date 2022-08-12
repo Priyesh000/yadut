@@ -76,14 +76,42 @@ xlargest_dir_fig  = px.bar(xlargest_dir_df1, x='ParentDir', y='Size_GB', color='
                                 "ParentDir": "Directories"
                             } )
 
+xlargest_dir_tab1 = dbc.Tab([dcc.Graph(id='xlagest-dir', figure=xlargest_dir_fig)], label='Chart')
+xlargest_dir_tab2 = dbc.Tab([make_table(xlargest_dir_df, 'xlargest-dir-table')], label='Table')
+xlargest_dir_tabs = dbc.Tabs([xlargest_dir_tab1, xlargest_dir_tab2])
+
+
 sum_file_types_df = sum_file_types()
 sum_file_types_df['Size_GB']  = (sum_file_types_df.Size/1024**3).round(2)
-sum_file_types_fig  = px.bar(sum_file_types_df, x='FileType', y='Size_GB', 
-                            title="File types", 
+sum_file_types_size_fig  = px.bar(sum_file_types_df, x='FileType', y='Size_GB', 
+                            title="File types - Total file size", 
                             labels={
                                 "Size_GB": "Size (GB)",
                                 "FileType": "File type"
                             } )
+
+sum_file_types_count_fig  = px.bar(sum_file_types_df, x='FileType', y='Count', 
+                            title="File types - Count", 
+                            labels={
+                                "FileType": "File type"
+                            } )
+
+
+sum_file_types_tab1 = dbc.Tab(
+    [dcc.Graph(id="file-type-sum", figure=sum_file_types_size_fig)],
+     label="File Size")
+sum_file_types_tab2 = dbc.Tab(
+    [dcc.Graph(id="file-type-count",figure=sum_file_types_count_fig)],
+    label="File Count")
+sum_file_types_tab3 = dbc.Tab(
+    [make_table(sum_file_types_df, 'file-type-table')], 
+    label="Table", className="p-4")
+file_types_tabs = dbc.Tabs([sum_file_types_tab1, sum_file_types_tab2, sum_file_types_tab3])
+
+
+
+# tab1 = dbc.Tab([dcc.Graph(id="line-chart")], label="Line Chart")
+# tab2 = dbc.Tab([dcc.Graph(id="scatter-chart")], label="Scatter Chart")
 
 
 def dashing_board():
@@ -155,12 +183,13 @@ def dashing_board():
         html.H5('20 largest Directories', 
             className="p-2 mb-2 text-center")
         ]),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='xlagest-dir', figure=xlargest_dir_fig)], width=6
-        ), 
-        dbc.Col([
-            make_table(xlargest_dir_df, 'xlargest-dir-table')], width=5)
+    dbc.Row([ 
+        dbc.Col([xlargest_dir_tabs], width=12)
+        # dbc.Col([
+        #     dcc.Graph(id='xlagest-dir', figure=xlargest_dir_fig)], width=6
+        # ), 
+        # dbc.Col([
+        #     make_table(xlargest_dir_df, 'xlargest-dir-table')], width=5)
     ]),
     ## 
     dbc.Row([
@@ -168,8 +197,7 @@ def dashing_board():
             className="p-2 mb-2 text-center")
         ]),
     dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='largest-filetype', figure=sum_file_types_fig)], width=12),
+        dbc.Col([file_types_tabs], width=12),
     ]),
     dbc.Row([
         html.H5('Oldest files', 
