@@ -1,4 +1,4 @@
-from disk_usage import Console, Table, Optional
+from disk_usage.disk_usage import Console, Table, Optional
 import pandas as pd
 
 

@@ -3,6 +3,7 @@ import click
 # from functools import partial
 from disk_usage.disk_usage import *
 from disk_usage.reporting import total_folder_size, user_usage
+from disk_usage.plots import dashing_board
 # from disk_usage.plots import *
 
 ##TODO:
@@ -117,9 +118,9 @@ def report():
 @cli.command()
 def dashboard():
     """hopefully a interactive dashboard generated using ploty and dashly"""
-    df = user_usage()
+    app = dashing_board()
+    app.run_server(debug=True)
     pass
 
 if __name__ == "__main__":
-
     cli() 
