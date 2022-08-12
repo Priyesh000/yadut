@@ -1,18 +1,11 @@
 
 
-from disk_usage.disk_usage import *
+from disk_usage import *
 import pandas as pd
+from util import *
+from sqlalchemy import desc 
+from datetime import datetime 
 
-
-def human_readable_bytes(size: float) -> str:
-    """convert bites to human readable format"""
-    power = 1024
-    n = 0
-    power_labels = {0 : '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
-    while size > power:
-        size /= power
-        n += 1
-    return f"{size:.2f} {power_labels[n]+'b'}"
 
 
 # https: // stackoverflow.com/questions/1052148/group-by-count-function-in-sqlalchemy
@@ -47,7 +40,7 @@ def total_folder_size(savepath: str=None):
             ).all()
 
         table = Table()
-        header = ['Folder', 'Count', "TotalSize"]
+        header = ['Folder', 'Count', "Size"]
         for col in header:
             table.add_column(col, style='cyan')
         for res in filecount_size:
@@ -79,7 +72,22 @@ def top_x_largest_directies(head: int):
 def user_usage():
     """Total usage by users"""
     ## Groupby users count, sum
-    pass
+    with Session(engine) as session:
+        results = session.exec(
+            (select(
+                FileStats.user,
+                func.count(FileStats.parent).label('Count'), 
+                func.sum(FileStats.file_size).label('Size') #/1024**3  ## in Gb
+                ).where(FileStats.is_file==True)
+                .group_by(FileStats.user)
+                .order_by(desc('Size'))
+            )
+        ).all()
+    df=  pd.DataFrame(results, columns=['User', 'Count', "Size"])
+    table = Table()
+    console.print(df2table(df, table, show_index=False, human_readable='Size'))
+    return df
+    
 
 def duplicated_files():
     """
@@ -97,4 +105,28 @@ def duplicated_files():
 
 def older_files():
     """Show the oldest files with ctime"""
-    pass
+    with Session(engine) as session:
+        myquery = (select(
+                    FileStats.mtime,
+                    FileStats.user,
+                    FileStats.filename,
+                    FileStats.parent,
+                    FileStats.file_size,
+                ).where(FileStats.is_file==True)
+                .order_by(desc(FileStats.file_size))
+                .order_by(desc(FileStats.mtime))
+                .limit(100)
+            )
+        results = session.exec(myquery).all()
+    df=  pd.DataFrame(results, columns=['Date', "User",'Filename', "ParentDir", "Size"])
+    df['Date'] = df.Date.apply(lambda x: 
+        datetime.utcfromtimestamp(x).strftime('%Y-%m-%d %H:%M'))
+    df["Date"] = pd.to_datetime(df.Date)
+    df = df.sort_values('Date')
+    table = Table()
+    console.print(df2table(df, table, show_index=False, human_readable='Size'))
+    return df
+
+if __name__ == "__main__":
+    user_usage()
+    older_files()

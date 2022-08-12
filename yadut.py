@@ -2,7 +2,7 @@ import click
 # from loguru import logger
 # from functools import partial
 from disk_usage.disk_usage import *
-from disk_usage.reporting import total_folder_size
+from disk_usage.reporting import total_folder_size, user_usage
 # from disk_usage.plots import *
 
 ##TODO:
@@ -117,6 +117,7 @@ def report():
 @cli.command()
 def dashboard():
     """hopefully a interactive dashboard generated using ploty and dashly"""
+    df = user_usage()
     pass
 
 if __name__ == "__main__":

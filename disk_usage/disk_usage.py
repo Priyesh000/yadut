@@ -23,8 +23,11 @@ from functools import partial
 from datetime import datetime
 import re
 
-from .checksum import filehash
-from .model import FileStats, engine, create_db_and_tables
+from checksum import filehash
+from model import FileStats, engine, create_db_and_tables
+
+
+
 
 
 console = Console()
