@@ -190,6 +190,7 @@ def folder_comp(levels: int=4) ->Tuple[pd.DataFrame, list]:
     colnames.pop(0)
     df.drop('level_0', axis=1, inplace=True) ## dropped first col bacuase is blank 
     df1 = df.groupby(colnames)['Size'].sum().reset_index()
+    df1['Size_GB'] = df.Size.apply(lambda x: x/1024 **3)
     df1 = df1.fillna('')
     return (df1, colnames)
 

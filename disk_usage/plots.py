@@ -12,7 +12,7 @@
 
 ## Example: https://hellodash.pythonanywhere.com/
 ## Cheatsheet: https://dashcheatsheet.pythonanywhere.com/
-from cProfile import label
+
 from dash import Dash, dcc, html, dash_table, Input, Output, callback
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import ThemeChangerAIO, template_from_url
@@ -57,20 +57,19 @@ def make_table(df, iid):
 ## make it shine
 # path=['day', 'time', 'sex'], values='total_bill
 
-# sunburst_data, sb_col = folder_comp()
-
-# sunburst_data.to_csv('sunburst.tsv')
-# disk_stur_fig = px.sunburst(sunburst_data.head(100), path=[sb_col[:2]], values='Size')
-
-# disk_stur_fig.show()
-
-
-
 # tab1 = dbc.Tab([dcc.Graph(id="line-chart")], label="Line Chart")
 # tab2 = dbc.Tab([dcc.Graph(id="scatter-chart")], label="Scatter Chart")
 
-
 def dashing_board():
+
+    sunburst_data, sb_col = folder_comp()
+    disk_stur_fig = px.sunburst(
+        sunburst_data, 
+        path=sb_col,
+        hover_data=['Size_GB'],
+        values='Size')
+
+    
 
     xlargest_dir_df =  x_largest_directories()
     xlargest_dir_df1 = xlargest_dir_df.copy()
@@ -121,7 +120,7 @@ def dashing_board():
 
     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc_css])
 
-    header = html.H4(
+    header = html.H1(
         "Disk Utilisation", className="bg-primary text-white p-2 mb-2 text-center"
     )
 
@@ -137,7 +136,15 @@ def dashing_board():
         values='Size', 
         names='User', 
         title='Total Disks usage by user!')
-    user_usage_df['Size'] = user_usage_df.Size.apply(human_readable_bytes)
+    user_usage_df['Size_si'] = user_usage_df.Size.apply(human_readable_bytes)
+
+
+    user_usage_tab1 = dbc.Tab(
+        [dcc.Graph(id="user-usage-fig",figure=users_fig)],label="User Usage")
+    user_usage_tab2 = dbc.Tab([make_table(user_usage_df, 'user-usage-table')], label="Table", className="p-4")
+    user_usage_tabs = dbc.Tabs([user_usage_tab1, user_usage_tab2])
+
+
 
     older_files_df = older_files()
     older_files_df['Path'] = older_files_df['ParentDir'] + "/"+ older_files_df['Filename']
@@ -153,31 +160,46 @@ def dashing_board():
         #         'textAlign': 'center',
         #         'color': colors['text']
         #     }),
+        # dbc.Row([
+        #     html.H5("Disk Usage visualisation", 
+        #         className="p-2 mb-2 text-center")
+        # ]),
+        # dbc.Row([ 
+        #     dbc.Col([
+        #         dcc.Graph(id='disk-vis', figure=disk_stur_fig)
+        #         ], width=10,
+        #     # style={"width": "800px", "margin-left": 10}
+        #     )
+        # ]),
 
-        dbc.Row([
-            html.H5('User Utilisation', 
-                className="p-2 mb-2 text-center")
-        ]),
+        # dbc.Row([
+        #     html.H5('User Utilisation', 
+        #         className="p-2 mb-2 text-center")
+        # ]),
         
         dbc.Row([ 
             dbc.Col([
-                dcc.Graph(id='user-pie', figure=users_fig),
-                # generate_table(user_usage_df),
-
-            ], width=6,
-            style={"width": "600px", "margin-left": 10},
-            ),
-            
-            dbc.Col([
-                make_table(user_usage_df, 'users-table'),
+                dbc.Row([
+                    html.H5('Disk Utilisation', 
+                        className="p-2 mb-2 text-left")],
+                        justify="left"),
+                dcc.Graph(id ='sunburst-fig', figure=disk_stur_fig),
             ], width=6,
             style={
-                "width": "400px",
-                "margin-left":10,
+                "width": "50%",
+                'justify':"left",
+                # "margin-left":10,
                 "margin-top": 50
                 }
             ),
-
+            dbc.Col([user_usage_tabs], width=6,
+            style={
+                "width": "50%",
+                 "margin-left": 0, 
+                'justify':"left",
+             },
+            ),
+            
         ], justify="center"),
     ## largest dir
     dbc.Row([
