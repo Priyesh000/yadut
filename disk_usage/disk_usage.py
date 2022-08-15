@@ -16,8 +16,8 @@ from typing import List, Dict, Optional, Union, Tuple
 # from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process, Queue
 
-from sqlmodel import Session
-from sqlalchemy import select, func
+from sqlmodel import Session#, select, func, col, 
+# from sqlalchemy import select, func
 
 from functools import partial
 from datetime import datetime
@@ -27,15 +27,10 @@ from disk_usage.checksum import filehash
 from disk_usage.model import FileStats, engine, create_db_and_tables
 
 
-
-
-
 console = Console()
 
 # d = Path('/Users/prughani/Downloads')
 d = '../test'
-
-
 # logger.remove()
 
 def add_db(results: List[FileStats], engine: engine) -> None:
@@ -154,32 +149,3 @@ def howlong(func):
         console.print(func.__name__, timedelta(seconds=end-start))
         return res
     return _inner
-
-
-
-"""user 10.12s system 31% cpu 46.239 total 1thread
-4.37s user 10.32s system 37% cpu 38.703 total 4 thread
-
-1.07s user 0.26s system 59% cpu 2.237 total ##  4 thread NO checksum
-4.46s user 10.21s system 32% cpu 45.022 total ## 1 thread Checksum Whole file
-3.51s user 7.34s system 15% cpu 1:11.27 total ## 1 thread Checksum Jump 1
-3.84s user 8.21s system 14% cpu 1:24.23 total ## 8 threas Checksum Jump
-3.07s user 6.28s system 22% cpu 41.707 total
-0.59s user 0.12s system 4% cpu 17.277 total ## 8 threas No Checksum
-0.48s user 0.10s system 20% cpu 2.887 total ## 1 threads No Checksum
-
-3.04s user 7.62s system 8% cpu 2:00.40 total ## 1 threads Checksum Jump
-2.67s user 6.35s system 8% cpu 1:45.00 total ## 8 thread checksum Jump
-"""
-        
-
-
-
-# def iterrate_dir(path: Path):
-#     for i in path.iterdir():
-#         if i.is_file():
-#             yield i 
-#         else:
-#             print('is_dir',i)
-#             yield iterrate_dir(i)
-    

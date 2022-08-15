@@ -2,8 +2,9 @@ import click
 # from loguru import logger
 # from functools import partial
 from disk_usage.disk_usage import *
-from disk_usage.reporting import total_folder_size, user_usage
-from disk_usage.plots import dashing_board
+from disk_usage.reporting import total_folder_size, user_usage_df
+# from disk_usage.plots import dashing_board, make_static
+from disk_usage.layout import dashingboard
 # from disk_usage.plots import *
 
 ##TODO:
@@ -116,10 +117,24 @@ def report():
     total_folder_size()
 
 @cli.command()
-def dashboard():
+@click.option(
+    '--port','-p', 
+    type = int,
+    default=8050,
+    help='Port number to start the port on'
+)
+@click.option(
+    '--debug', '-d',
+    is_flag=True,
+    default=False,
+    help='Flask Server debuging'
+)
+def dashboard(port, debug):
     """hopefully a interactive dashboard generated using ploty and dashly"""
-    app = dashing_board()
-    app.run_server(debug=True)
+    app = dashingboard()
+    from waitress import serve
+    app.run(debug=debug, port=port)
+
     pass
 
 if __name__ == "__main__":
