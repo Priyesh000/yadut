@@ -46,7 +46,7 @@ def selecting_options():
                 }
     # header =dbc.CardHeader('Option',style=headerstyle)
     users_list, years_list = options_list()
-    print(years_list)
+
     body = dbc.CardBody([
         html.Div([
             html.H6(['Options']),
@@ -87,6 +87,7 @@ def dashingboard():
     dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 
     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc_css])
+    server = app.server
     app.layout = html.Div([
         dbc.Row([
             html.H1('Disk Anaylzer', 
@@ -242,28 +243,5 @@ def dashingboard():
         return fig, dtable
 
     return app
-
-
-
-# @app.callback([
-#     Output(component_id='file-type-sum-fig', component_property='figure'),
-#     Output(component_id='file-type-counts-fig', component_property='figure'),
-#     Output(component_id='file-type-table', component_property='children')],
-#     Input(component_id='user-dropdown', component_property='value'),
-#     prevent_initial_call=False)
-# def callback_oldest_files(users):
-#     fig_sum,fig_count, dtable  = sum_file_types_plot(users)
-#     return fig_sum,fig_count, dtable
-
-# @app.callback(
-#     Output(component_id='largest-files-table', component_property='value'),
-#     Input(component_id='user-dropdown', component_property='value'),
-#     prevent_initial_call=False)
-# def largest_files_df(users:  List[str]=None):
-#     df = top_x_largest_files(users=users)
-#     df1 = df.copy()
-#     df1['Size_GB'] = df1.Size/1024**3 
-#     return df    
+   
     
-if __name__ == "__main__":
-    app.run(debug=True)

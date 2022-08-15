@@ -133,7 +133,11 @@ def dashboard(port, debug):
     """hopefully a interactive dashboard generated using ploty and dashly"""
     app = dashingboard()
     from waitress import serve
-    app.run(debug=debug, port=port)
+    app.run(
+        debug=debug,
+        port=port,
+        host='0.0.0.0'
+        )
 
     pass
 
