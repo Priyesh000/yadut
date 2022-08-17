@@ -1,5 +1,6 @@
 
 from pathlib import Path
+import shutil
 import time
 # import pandas as pd
 import os
@@ -24,21 +25,28 @@ from datetime import datetime
 import re
 
 from disk_usage.checksum import filehash
-from disk_usage.model import FileStats, engine, create_db_and_tables
+from disk_usage.model import FileStats, engine, create_db_and_tables, FileSystemUsage
 
 
 console = Console()
 
 # d = Path('/Users/prughani/Downloads')
 d = '../test'
-# logger.remove()
+logger.remove()
 
-def add_db(results: List[FileStats], engine: engine) -> None:
-    logger.debug(f'number of iteams in results {len(results)}')
-    if len(results)>1:
+def add_db(results: Union[List[FileStats], FileSystemUsage], engine: engine) -> None:
+
         with Session(engine) as db:
-            db.add_all(results)
-            db.commit()
+            if isinstance(results, FileSystemUsage):
+                db.add(results)
+                commit =True 
+            elif isinstance(results, list) and len(results)>1:
+                db.add_all(results)
+                logger.debug(f'number of iteams in results {len(results)}') 
+                commit =True 
+            
+            if  commit:        
+                db.commit()
 
 def convert_datetime(isotime):
 
@@ -137,8 +145,50 @@ def worker(threads, queue, **kwargs) -> List[Process]:
         # w.join()
         workers.append(w)
         time.sleep(5) ## give a time for queue to fill up
-        
     return workers
+
+def find_monutpoint(path: Union[str, Path])-> Path:
+    """Finds mount point
+    
+    Args:
+        path (str, Path): Path to directories
+    Return:
+        return (Path object): Path is reduced to the orignal mount point  
+    """
+    ## ref: https://stackoverflow.com/questions/4260116/find-size-and-free-space-of-the-filesystem-containing-a-given-file 
+
+    path = Path(path).resolve()
+    c =0
+    while c< 20:
+        if path.is_mount():
+            return path
+        path = path.parent
+        c +=1
+    return None 
+
+def path_seen_before(current_path: str, previous_paths: List[str]):
+    pass
+
+
+def file_system_usage(path: Union[Path, str], engine)-> None:
+    """Get the disk useage and add to db"""
+    path = Path(path)
+    if not path.exists():
+        raise ValueError(f'{path}: Does not exists')
+    if path.is_dir():
+        # if any([]):
+        mp =  find_monutpoint(path) 
+        # seen.append(mp)
+        if mp:
+            logger.debug(f'Mount point {mp}')
+            total, used, free = shutil.disk_usage(str(mp))
+            logger.debug(f'Mount point {mp}, Total {total}, used {used}, free {free}')
+            res  = FileSystemUsage(mountpoint=str(mp), total=total, used=used, free=free)
+            add_db(res, engine)
+        return res
+
+
+    
 
 def howlong(func):
     """A simply decorator to time functions"""

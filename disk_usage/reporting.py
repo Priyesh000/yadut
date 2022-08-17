@@ -213,7 +213,7 @@ def duplicated_files():
     """
     pass
 
-def older_files(users: List[str]=None):
+def get_older_files(users: List[str]=None):
     """Show the oldest files with ctime"""
 
     if users:
@@ -288,6 +288,65 @@ def options_list()->Tuple[List[str],List[int]]:
     years = set(datetime.utcfromtimestamp(x).strftime('%Y') for x in dates)
 
     return (users, sorted(list(map(int,years))))
+
+
+def export_table(users: List[str]=None) -> pd.DataFrame:
+
+    if users:
+        myquery = (
+            select(
+                    FileStats.ctime,
+                    FileStats.mtime,
+                    FileStats.user,
+                    FileStats.parent,
+                    FileStats.filename,
+                    FileStats.file_size
+                ).where(FileStats.is_file==True).where(col(FileStats.user).in_(users))
+                .order_by(desc(FileStats.file_size))
+                .order_by(desc(FileStats.ctime))
+                # .limit(100)
+            )
+    else:
+        myquery = (
+            select(
+                    FileStats.ctime,
+                    FileStats.mtime,
+                    FileStats.user,
+                    FileStats.parent,
+                    FileStats.filename,
+                    FileStats.file_size,
+                ).where(FileStats.is_file==True)
+                .order_by(desc(FileStats.file_size))
+                # .order_by(desc(FileStats.ctime))
+                # .limit(100)
+            )
+    with Session(engine) as session:
+        results = session.exec(myquery).all()
+    
+    df = pd.DataFrame(results, columns=['Ctime','Mtime', 'User', 'ParentDir', 'Filename', 'Size'])
+    df['Size_si'] = df.Size.apply(human_readable_bytes)
+    df['DateCreate'] = df.Ctime.apply(lambda x: datetime.utcfromtimestamp(x).strftime('%Y-%m-%d %H:%M'))
+    df['DateModified'] = df.Mtime.apply(lambda x: datetime.utcfromtimestamp(x).strftime('%Y-%m-%d %H:%M'))
+    df.drop(['Ctime', 'Mtime'], axis=1, inplace=True)
+    return df
+    
+def report_mountpoint():
+    with Session(engine) as session:
+        myquery = (
+            select(
+                FileSystemUsage.mountpoint,
+                FileSystemUsage.total,
+                FileSystemUsage.used,
+                FileSystemUsage.free
+                )
+        )
+        results = session.exec(myquery).all()
+    df = pd.DataFrame(results, columns=['MountPoint', 'Total', 'Used', 'Free'])
+    df = df.sort_values('Used', ascending=False)
+    df['%Used'] = df.apply(lambda x: f"{(100 * (x['Used']/x['Total'])):.2f}%", axis=1)
+    for i in [ 'Total', 'Used', 'Free']:
+        df[i] = df[i].apply(human_readable_bytes)
+    return df
 # if __name__ == "__main__":
     # user_usage()
     # older_files()

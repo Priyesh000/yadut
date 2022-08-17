@@ -86,8 +86,8 @@ def user_usage_plot(users):
     fig.update_traces(textinfo="percent").update_layout(title_x=0.5)
     return fig, make_table(df, 'user-usage-table')
 
-def oldest_file(users: List[str]=None):
-    df = older_files(users=users)
+def oldest_file_plot(users: List[str]=None):
+    df = get_older_files(users=users)
     df['Path'] = df['ParentDir'] + "/"+ df['Filename']
     df['Size_si'] = df.Size.apply(human_readable_bytes)
     df.drop(['ParentDir', 'Filename'], axis =1, inplace=True)
@@ -118,105 +118,3 @@ def largest_files(users: List[str]):
             "Filename": "" } )
     dtable = make_table(df, 'largest-files-table_')
     return fig, dtable
-
-
-# def dashing_board():
-#     ## TODO: add all figures as function and clean up to mess
-
-    
-
-#     # stylesheet with the .dbc class
-#     dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
-
-#     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc_css])
-
-#     header = html.H1(
-#         "Disk Utilisation", className="bg-primary text-white p-2 mb-2 text-center"
-#     )
-
-#     colors = {
-#         'background': '#111111',
-#         'text': '#7FDBFF'
-#     }
-
-
-
-#     app.layout = dbc.Container([
-#         header,
-#         dbc.Row([
-#             dbc.Col([
-#             html.Button('Save offline', id='save', n_clicks=0),
-#             html.Span('', id='saved'),
-#             ]),
-#         ]),
-        
-#         dbc.Row([ 
-#             dbc.Col([
-#                 dbc.Row([
-#                     html.H5('Disk Utilisation', 
-#                         className="p-2 mb-2 text-left")],
-#                         justify="left"),
-#                 *card_contrainer('Total Disk Size', "1.00Tb",None),
-#                 dcc.Graph(id ='sunburst-fig', figure=disk_stur_fig),
-                
-#             ], width=6,
-#             style={
-#                 "width": "50%",
-#                 'justify':"left",
-#                 # "margin-left":10,
-#                 "margin-top": 50
-#                 }
-#             ),
-#             dbc.Col([user_usage_tabs], width=6,
-#             style={
-#                 "width": "50%",
-#                  "margin-left": 0, 
-#                 'justify':"left",
-#              }),
-#         ], justify="center"),
-#     ## largest dir
-#     dbc.Row([
-#         html.H5('20 largest Directories', 
-#             className="p-2 mb-2 text-center")
-#         ]),
-#     dbc.Row([ 
-#         dbc.Col([xlargest_dir_tabs], width=12)
-#     ]),
-#     ## File types
-#     dbc.Row([
-#         html.H5('Largest files types', 
-#             className="p-2 mb-2 text-center")
-#         ]),
-#     dbc.Row([
-#         dbc.Col([file_types_tabs], width=12),
-#     ]),
-#     ## Older files 
-#     dbc.Row([
-#         html.H5('Oldest files', 
-#             className="p-2 mb-2 text-center")
-#         ]),
-#     dbc.Row([
-#         older_file_table], 
-#             align='centre'),
-#     ], class_name='tab-content col-md-12',
-#     style={"font-family": "Arial", "font-size": "0.9em", "text-align": "center"},
-#     )
-#     ## End
-#     @app.callback(
-#         Output('saved', 'children'),
-#         Input('save', 'n_clicks'),
-#     )
-#     def save_result(n_clicks):
-#         if n_clicks == 0:
-#             return 'not saved'
-#         else:
-#             make_static(f'http://127.0.0.1:8050/')
-#             return 'saved'
-
-#     return app
-
-# # # assume you have a "long-form" data frame
-# # # see https://plotly.com/python/px-arguments/ for more options
-
-# if __name__ == '__main__':
-#     dashing_board().run_server(debug=True)

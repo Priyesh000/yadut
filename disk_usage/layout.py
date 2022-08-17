@@ -1,10 +1,11 @@
 
+from bz2 import compress
 from shutil import disk_usage
 from symtable import SymbolTable
 from dash import Dash, html, dcc
 import dash
 import dash_bootstrap_components as dbc
-from disk_usage.reporting import x_largest_directories, sum_file_types
+from disk_usage.reporting import x_largest_directories, sum_file_types, report_mountpoint
 from disk_usage.plots  import *
 from dash.exceptions import PreventUpdate
 
@@ -13,6 +14,21 @@ h3_header_style={
     'textAlign': 'center',
     'align':'center'
 }
+
+def mount_ponit_contrainer():
+    style_body = dict(
+        textAlign='center',
+        fontSize='200%', 
+        color='lightgrey')
+
+    df = report_mountpoint()
+    table = make_table(df, 'mountpoints')
+    card = [
+        html.H5(f'Mount points',style=style_body),
+        html.Div(children=table, id='mount-point-table', 
+        className='p-4'
+        )]
+    return card 
 
 def card_contrainer(header, value, footer=None):
     style_header = dict(textAlign='center', fontSize='150%')
@@ -23,10 +39,10 @@ def card_contrainer(header, value, footer=None):
     card_header = dbc.CardHeader(header, style=style_header)
     card_body =  dbc.CardBody([
         html.H5(f'{value}',className='card-title', style=style_body),
-        html.P(
-            f'ADD Footer text here {footer}', 
-            className='cardText', style={'textAlign': 'centre'}
-        )
+        # html.P(
+        #     f'ADD Footer text here {footer}', 
+        #     className='cardText', style={'textAlign': 'centre'}
+        # )
     ])
     return [card_header, card_body]
 
@@ -39,7 +55,7 @@ def graph_contrainer(header, graph, width=12):
 def selecting_options():
 
     headerstyle={'textAlign': 'center', 'fontSize': '100%'}
-    bodystyle={'textAlign': 'center', 'fontSize': '75%', 
+    bodystyle={'textAlign': 'left', 'fontSize': '75%', 
         # 'background-color':'lightgrey', 
         # 'border-style':'solid',
         # 'outline-color': 'blue',           
@@ -51,34 +67,37 @@ def selecting_options():
         html.Div([
             html.H6(['Options']),
             html.Br(),
-            html.Label('Select Users'),
+            html.Label('Select Users', style={"font-weight": "bold"}),
             dcc.Dropdown(users_list, multi=True, id='user-dropdown'),
             html.Br(),
-            html.H6('Select years'),
-            dcc.RangeSlider(
-                # min=years_list[0],
-                # max=years_list[-1],
-                # step=1,
-                marks={str(n):str(y) for n, y in enumerate(years_list)}
-            ),
-            html.Br(),
-            html.Label('Minimum file size GB'),
-            dcc.Slider(
-                min=0,
-                max=100,
-                value=5,
-                tooltip={"placement": "bottom", "always_visible": True}), 
-                # style={
-                #     # 'display': 'flex', 
-                #     'flex-direction': 'row'
-                # }
+            # html.H6('Select years'),
+            # dcc.RangeSlider(
+            #     # min=years_list[0],
+            #     # max=years_list[-1],
+            #     # step=1,
+            #     marks={str(n):str(y) for n, y in enumerate(years_list)}
+            # ),
+            # html.Br(),
+            # html.Label('Minimum file size GB'),
+            # dcc.Slider(
+            #     min=0,
+            #     max=100,
+            #     value=5,
+            #     tooltip={"placement": "bottom", "always_visible": True}), 
+            #     # style={
+            #     #     # 'display': 'flex', 
+            #     #     'flex-direction': 'row'
+            #     # }
             dbc.Row([
                 html.Br(),
                 dbc.Col([
-                    html.Button('Save offline', id='save', n_clicks=0),
-                    html.Span('', id='saved')
+                    html.Button('Export table', id='export-table-btn'),
+                    html.P('Download full dataset of files and directories by users'),
+                    dcc.Download(id="download-dataframe-csv"),
+                #     html.Button('Save offline', id='save', n_clicks=0),
+                #     html.Span('', id='saved')
                 ], style={'align': 'left'}),
-        ])]
+        ],style={'align': 'left'})]
                 )
     ],style=bodystyle)
     return [body]
@@ -94,14 +113,19 @@ def dashingboard():
                 style={
                     'textAlign': 'center',
                     'fontSize': '200%'}),
+            html.Hr(className='rounded', style=dict(
+                borderTop='8px',  solid='#bbb',  borderRadius='5px')
+                ),
             html.Br()
         ]),
         ## -- Total Disk user card -- ##
         dbc.Row([
+            ## -- USER OPTIONS -- ##
             dbc.Col(selecting_options(),
             width=4),
-            dbc.Col(card_contrainer('Total Disk usage', 'XXX Tb'),
-            width=4),
+            ## -- mount points -- #
+            dbc.Col(mount_ponit_contrainer(),
+            width=8),
             ]),
         ## -- File Type -- ##
         dbc.Row([
@@ -174,16 +198,16 @@ def dashingboard():
         ## -- End --
 
 
-    @app.callback(
-        Output('saved', 'children'),
-        Input('save', 'n_clicks'),
-        )
-    def save_result(n_clicks):
-        if n_clicks == 0:
-            return 'not saved'
-        else:
-            make_static(f'http://127.0.0.1:8050/')
-            return 'saved'
+    # @app.callback(
+    #     Output('saved', 'children'),
+    #     Input('save', 'n_clicks'),
+    #     )
+    # def save_result(n_clicks):
+    #     if n_clicks == 0:
+    #         return 'not saved'
+    #     else:
+    #         make_static(f'http://127.0.0.1:8050/')
+    #         return 'saved'
 
     @app.callback([
         Output(component_id='largest-files-fig', component_property='figure'),
@@ -223,7 +247,7 @@ def dashingboard():
         Input(component_id='user-dropdown', component_property='value'),
         prevent_initial_call=False)
     def callback_oldest_files(users):
-        fig, dtable  = oldest_file(users)
+        fig, dtable  = oldest_file_plot(users)
         return fig,dtable
 
     # @app.callback(
@@ -242,6 +266,27 @@ def dashingboard():
         fig, dtable  = largest_dir_plot(users)
         return fig, dtable
 
+    @app.callback(
+        Output("download-dataframe-csv", "data"),
+        Input(component_id='user-dropdown', component_property='value'),
+        Input(component_id='export-table-btn', component_property='n_clicks'),
+        prevent_initial_call=True)
+    def download_table(users, n_click):
+        if n_click is None:
+            raise PreventUpdate
+
+        df = export_table(users)
+
+        # return dcc.send_data_frame(df1.to_csv, "disk_usage_table.csv.gz", index=False, compress='gzip')
+        # df1.to_csv('tmp/dish', compression=)
+        return dcc.send_bytes(
+            df.to_csv,
+            filename='disk_usage.csv.gz', 
+            type='application/gzip',
+            compression='gzip', 
+            index=False
+        )
+        
     return app
    
     

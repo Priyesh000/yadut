@@ -89,6 +89,7 @@ def usage(input_dirs, check_sum, maxbytes, blocksize, threads, regex, skipblocks
                          blocksize=blocksize, skipblocks=skipblocks)
     dirin = []
     create_db_and_tables('replace')
+    
     if regex:
         exclude_pat = exclude_pattern(regex)
     else:
@@ -102,6 +103,7 @@ def usage(input_dirs, check_sum, maxbytes, blocksize, threads, regex, skipblocks
             continue
         logger.debug(f'{path} Added path to list')
         dirin.append(path)
+        file_system_usage(path, engine)
     
     queue = Queue()
     add_to_q(queue, dirin)
@@ -135,10 +137,14 @@ def dashboard(port, debug):
     """hopefully a interactive dashboard generated using ploty and dashly"""
     app = dashingboard()
     from waitress import serve
+    host = '0.0.0.0'
+    if debug:
+        host = '127.0.0.1'
+
     app.run(
         debug=debug,
         port=port,
-        host='0.0.0.0'
+        host=host
         )
 
 if __name__ == "__main__":

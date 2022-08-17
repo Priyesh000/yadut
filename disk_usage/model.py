@@ -22,6 +22,14 @@ class FileStats(SQLModel, table=True):
         self.checksum = checksum
 
 
+class FileSystemUsage(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True) ## ToDo: make id a checksum value 
+    mountpoint: Optional[str] = None
+    total: int
+    used: int
+    free: int
+
+
 sqlite_file_name = "database2.db"  ## TODO: add to config file
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 engine = create_engine(sqlite_url, echo=False)
@@ -45,7 +53,6 @@ def create_db_and_tables(if_exists='replace') -> None:
         ## handle by the create_al
         pass 
     SQLModel.metadata.create_all(engine)
-
 
 if __name__ == "__main__":
     """If the model.py is run then it will create all tables but not automatically if imported"""
