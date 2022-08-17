@@ -120,12 +120,14 @@ def report():
 @click.option(
     '--port','-p', 
     type = int,
+    show_default=True,
     default=8050,
     help='Port number to start the port on'
 )
 @click.option(
     '--debug', '-d',
     is_flag=True,
+    show_default=True,
     default=False,
     help='Flask Server debuging'
 )
@@ -138,8 +140,6 @@ def dashboard(port, debug):
         port=port,
         host='0.0.0.0'
         )
-
-    pass
 
 if __name__ == "__main__":
     cli() 
