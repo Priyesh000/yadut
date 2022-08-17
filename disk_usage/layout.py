@@ -154,10 +154,10 @@ def dashingboard():
             ])
         ], style=h3_header_style),
         ## -- Disk exploser -- ##
-        dbc.Row([
-            html.H3('Disk Explorer'),
-            dcc.Graph(id='disk-anaylser-fig')
-        ], style=h3_header_style)
+        # dbc.Row([
+        #     html.H3('Disk Explorer'),
+        #     dcc.Graph(id='disk-anaylser-fig')
+        # ], style=h3_header_style)
 
         ], style={
             'padding': 20,
@@ -226,12 +226,12 @@ def dashingboard():
         fig, dtable  = oldest_file(users)
         return fig,dtable
 
-    @app.callback(
-        Output(component_id='disk-anaylser-fig', component_property='figure'),
-        Input(component_id='user-dropdown', component_property='value'),
-        prevent_initial_call=False)
-    def callback_disk_analyser(users):
-        return disk_analyser(users)
+    # @app.callback(
+    #     Output(component_id='disk-anaylser-fig', component_property='figure'),
+    #     Input(component_id='user-dropdown', component_property='value'),
+    #     prevent_initial_call=False)
+    # def callback_disk_analyser(users):
+    #     return disk_analyser(users)
 
     @app.callback([
         Output(component_id='xlargest-dir-fig', component_property='figure'),
