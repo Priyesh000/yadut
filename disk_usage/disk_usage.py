@@ -35,7 +35,7 @@ d = '../test'
 logger.remove()
 
 def add_db(results: Union[List[FileStats], FileSystemUsage], engine: engine) -> None:
-
+        commit =False
         with Session(engine) as db:
             if isinstance(results, FileSystemUsage):
                 db.add(results)
@@ -44,7 +44,6 @@ def add_db(results: Union[List[FileStats], FileSystemUsage], engine: engine) -> 
                 db.add_all(results)
                 logger.debug(f'number of iteams in results {len(results)}') 
                 commit =True 
-            
             if  commit:        
                 db.commit()
 
